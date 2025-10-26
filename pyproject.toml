@@ -1,0 +1,16 @@
+[project]
+name = "resume-ner"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "huggingface-hub>=1.0.1",
+    "ipykernel>=7.1.0",
+    "ipywidgets>=8.1.7",
+    "mypy>=1.18.2",
+    "ruff>=0.14.2",
+]
