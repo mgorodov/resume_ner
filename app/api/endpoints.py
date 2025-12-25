@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from typing import Optional, List
 import time
+import json
 from pathlib import Path
 
 from app.core.security import create_access_token, verify_password, get_password_hash
@@ -71,6 +72,11 @@ async def forward_endpoint(
         
         # Get NER service from app state
         ner_service = request.app.state.ner_service
+        if not ner_service:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="NER service not initialized"
+            )
         
         # Check input type
         if image:
@@ -142,18 +148,21 @@ async def forward_endpoint(
         processing_time = time.time() - start_time
         
         # Save error to history
-        crud.create_request_history(
-            db=db,
-            endpoint="/forward",
-            method="POST",
-            processing_time=processing_time,
-            input_size=None,
-            input_type=None,
-            status="bad_request",
-            response_data={"error": str(e)},
-            user_agent=request.headers.get("user-agent", "unknown"),
-            ip_address=request.client.host if request.client else "unknown"
-        )
+        try:
+            crud.create_request_history(
+                db=db,
+                endpoint="/forward",
+                method="POST",
+                processing_time=processing_time,
+                input_size=None,
+                input_type=None,
+                status="bad_request",
+                response_data={"error": str(e)},
+                user_agent=request.headers.get("user-agent", "unknown"),
+                ip_address=request.client.host if request.client else "unknown"
+            )
+        except:
+            pass  # Если не удалось сохранить в историю, продолжаем
         
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -175,6 +184,7 @@ async def train_model(
         from app.ml.model import ResumeNERModel
         
         # Train model
+        print("🎯 Обучение модели NER...")
         model = ResumeNERModel()
         nlp = model.train_model(n_iter=n_iter, test_size=test_size)
         
@@ -200,7 +210,7 @@ async def train_model(
                 method="POST",
                 processing_time=processing_time,
                 status="success",
-                response_data={"accuracy": accuracy, "iterations": n_iter}
+                response_data={"accuracy": float(accuracy), "iterations": n_iter}
             )
         
         return {
@@ -215,14 +225,17 @@ async def train_model(
         processing_time = time.time() - start_time
         
         if request:
-            crud.create_request_history(
-                db=db,
-                endpoint="/train",
-                method="POST",
-                processing_time=processing_time,
-                status="error",
-                response_data={"error": str(e)}
-            )
+            try:
+                crud.create_request_history(
+                    db=db,
+                    endpoint="/train",
+                    method="POST",
+                    processing_time=processing_time,
+                    status="error",
+                    response_data={"error": str(e)}
+                )
+            except:
+                pass
         
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -238,8 +251,14 @@ async def get_history(
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_admin)
 ):
-    history = crud.get_all_history(db, skip=skip, limit=limit)
-    return history
+    try:
+        history = crud.get_all_history(db, skip=skip, limit=limit)
+        return history
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ошибка при получении истории: {str(e)}"
+        )
 
 
 @router.delete("/history")
@@ -248,8 +267,14 @@ async def delete_history(
     delete_confirmed: bool = Depends(verify_delete_token),
     current_user: str = Depends(get_current_admin)
 ):
-    crud.delete_all_history(db)
-    return {"message": "History deleted successfully"}
+    try:
+        crud.delete_all_history(db)
+        return {"message": "History deleted successfully"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ошибка при удалении истории: {str(e)}"
+        )
 
 
 # Stats endpoint
@@ -258,13 +283,29 @@ async def get_stats(
     days: int = 7,
     db: Session = Depends(get_db)
 ):
-    stats = crud.get_history_stats(db, days=days)
-    
-    return {
-        "avg_processing_time": stats.avg_time,
-        "p50_processing_time": stats.p50_time,
-        "p95_processing_time": stats.p95_time,
-        "p99_processing_time": stats.p99_time,
-        "avg_input_size": stats.avg_input_size,
-        "request_count": stats.request_count
-    }
+    try:
+        stats = crud.get_history_stats(db, days=days)
+        
+        if not stats:
+            return StatsResponse(
+                avg_processing_time=None,
+                p50_processing_time=None,
+                p95_processing_time=None,
+                p99_processing_time=None,
+                avg_input_size=None,
+                request_count=0
+            )
+        
+        return StatsResponse(
+            avg_processing_time=stats.avg_time,
+            p50_processing_time=stats.p50_time,
+            p95_processing_time=stats.p95_time,
+            p99_processing_time=stats.p99_time,
+            avg_input_size=stats.avg_input_size,
+            request_count=stats.request_count
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ошибка при получении статистики: {str(e)}"
+        )

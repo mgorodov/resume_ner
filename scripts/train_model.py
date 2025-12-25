@@ -12,26 +12,33 @@ from app.ml.model import ResumeNERModel
 
 def main():
     """Основная функция обучения"""
-    print("🎯 Обучение модели NER для резюме...")
+    print("Обучение модели NER для резюме...")
     
     # Инициализация модели
     model = ResumeNERModel()
     
-    # Обучение
-    print("📚 Начало обучения...")
-    nlp = model.train_model(n_iter=10)
-    
-    # Сохранение модели
-    model_dir = Path("models")
-    model_dir.mkdir(exist_ok=True)
-    model_path = model_dir / "resume_ner_model"
-    model.save_model(str(model_path))
-    
-    print(f"💾 Модель сохранена в {model_path}")
-    
-    # Оценка
-    accuracy = model.evaluate()
-    print(f"📊 Точность модели: {accuracy:.4f}")
+    # Проверяем, есть ли уже модель
+    if model.load_model():
+        print("Модель уже существует. Для переобучения удалите папку models/")
+        response = input("Хотите переобучить модель? (y/N): ")
+        if response.lower() == 'y':
+            print("Переобучение модели...")
+            # Для переобучения нужно удалить модель
+            import shutil
+            model_path = Path("models/resume_ner_model")
+            if model_path.exists():
+                shutil.rmtree(model_path)
+            # Создаем новую модель
+            model = ResumeNERModel()
+            model.train_model(n_iter=10)
+            print("Модель переобучена")
+        else:
+            print("Используется существующая модель")
+    else:
+        # Обучаем новую модель
+        print("Обучение новой модели...")
+        model.train_model(n_iter=10)
+        print("Модель обучена")
     
     return model
 

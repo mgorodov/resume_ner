@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, Float, Text, JSON, Boolean
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, text
 from app.database.session import Base
 
 
@@ -9,12 +9,12 @@ class RequestHistory(Base):
     id = Column(Integer, primary_key=True, index=True)
     endpoint = Column(String, nullable=False)
     method = Column(String, nullable=False)
-    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    timestamp = Column(DateTime, server_default=func.now())
     processing_time = Column(Float, nullable=False)
     input_size = Column(Integer)
     input_type = Column(String)
     status = Column(String, nullable=False)
-    response_data = Column(JSON)
+    response_data = Column(JSON, nullable=True)  # SQLite поддерживает JSON с SQLAlchemy 1.3+
     user_agent = Column(String)
     ip_address = Column(String)
 
@@ -23,7 +23,7 @@ class RequestStats(Base):
     __tablename__ = "request_stats"
     
     id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    timestamp = Column(DateTime, server_default=func.now())
     endpoint = Column(String, nullable=False)
     avg_processing_time = Column(Float)
     p50_processing_time = Column(Float)
@@ -40,4 +40,4 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_admin = Column(Boolean, default=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime, server_default=func.now())

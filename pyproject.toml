@@ -25,7 +25,6 @@ dev = [
     "uvicorn>=0.40.0",
     "sqlalchemy>=2.0.23",
     "alembic>=1.12.1",
-    "psycopg2-binary>=2.9.9",
     "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]>=1.7.4",
     "python-multipart>=0.0.6",
@@ -39,3 +38,13 @@ dev = [
     "python-dateutil>=2.8.2",
     "python-dotenv>=1.0.0",
 ]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+select = ["E", "W", "F", "I", "B"]
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint]
+# Дополнительные настройки
+per-file-ignores = {}

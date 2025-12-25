@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Скрипт для запуска приложения
+Запуск сервера
 """
 import uvicorn
 

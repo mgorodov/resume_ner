@@ -15,18 +15,28 @@ from app.ml.ner_service import NERService
 async def lifespan(app: FastAPI):
     """Lifespan context manager"""
     # Startup
-    print("🚀 Запуск Resume NER Service...")
+    print("Запуск Resume NER Service...")
     
-    # Создание таблиц если их нет
-    Base.metadata.create_all(bind=engine)
+    try:
+        # Создание таблиц если их нет
+        Base.metadata.create_all(bind=engine)
+        print("База данных готова")
+    except Exception as e:
+        print(f"Ошибка базы данных: {e}")
     
-    # Инициализация NER сервиса
-    app.state.ner_service = NERService()
+    # Инициализация NER сервиса (модель загрузится или обучится автоматически)
+    try:
+        print("Инициализация NER сервиса...")
+        app.state.ner_service = NERService()
+        print("NER сервис готов")
+    except Exception as e:
+        print(f"Ошибка NER сервиса: {e}")
+        app.state.ner_service = None
     
     yield
     
     # Shutdown
-    print("🛑 Остановка Resume NER Service...")
+    print("Остановка сервиса...")
 
 
 app = FastAPI(
@@ -45,7 +55,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Middleware для измерения времени выполнения
+# Middleware для измерения времени выполнения запросов
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start_time = time.time()
@@ -72,20 +82,35 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Проверка здоровья сервиса"""
-    return {
+    status = {
         "status": "healthy",
         "service": "Resume NER Service",
-        "timestamp": time.time()
+        "timestamp": time.time(),
+        "database": "connected" if os.path.exists("resume_ner.db") else "not_connected"
     }
+    
+    # Проверка NER сервиса
+    try:
+        from app.ml.ner_service import NERService
+        status["ner_service"] = "initialized"
+    except:
+        status["ner_service"] = "error"
+    
+    return status
 
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Глобальный обработчик исключений"""
+    import traceback
+    print(f"Ошибка: {exc}")
+    print(traceback.format_exc())
+    
     return JSONResponse(
         status_code=500,
         content={
             "detail": "Внутренняя ошибка сервера",
-            "error": str(exc)
+            "error": str(exc),
+            "type": type(exc).__name__
         }
     )

@@ -7,7 +7,7 @@ Create Date: 2024-01-01 00:00:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+
 
 # revision identifiers, used by Alembic.
 revision = '001_initial'
@@ -22,12 +22,12 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('endpoint', sa.String(), nullable=False),
         sa.Column('method', sa.String(), nullable=False),
-        sa.Column('timestamp', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('timestamp', sa.DateTime(), nullable=True, server_default=sa.text('CURRENT_TIMESTAMP')),
         sa.Column('processing_time', sa.Float(), nullable=False),
         sa.Column('input_size', sa.Integer(), nullable=True),
         sa.Column('input_type', sa.String(), nullable=True),
         sa.Column('status', sa.String(), nullable=False),
-        sa.Column('response_data', postgresql.JSON(astext_type=sa.Text()), nullable=True),
+        sa.Column('response_data', sa.JSON(), nullable=True),
         sa.Column('user_agent', sa.String(), nullable=True),
         sa.Column('ip_address', sa.String(), nullable=True),
         sa.PrimaryKeyConstraint('id')
@@ -39,7 +39,7 @@ def upgrade() -> None:
     # Create request_stats table
     op.create_table('request_stats',
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('timestamp', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('timestamp', sa.DateTime(), nullable=True, server_default=sa.text('CURRENT_TIMESTAMP')),
         sa.Column('endpoint', sa.String(), nullable=False),
         sa.Column('avg_processing_time', sa.Float(), nullable=True),
         sa.Column('p50_processing_time', sa.Float(), nullable=True),
@@ -57,9 +57,10 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('username', sa.String(), nullable=False),
         sa.Column('hashed_password', sa.String(), nullable=False),
-        sa.Column('is_admin', sa.Boolean(), nullable=True, server_default='false'),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.PrimaryKeyConstraint('id')
+        sa.Column('is_admin', sa.Boolean(), nullable=True, server_default='0'),
+        sa.Column('created_at', sa.DateTime(), nullable=True, server_default=sa.text('CURRENT_TIMESTAMP')),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('username')
     )
     
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
