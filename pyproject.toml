@@ -4,47 +4,52 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "aiosqlite>=0.22.1",
+    "bcrypt>=5.0.0",
+    "fastapi>=0.127.0",
+    "loguru>=0.7.3",
+    "pydantic-settings>=2.12.0",
+    "pyjwt[crypto]>=2.10.1",
+    "python-multipart>=0.0.21",
+    "sqlalchemy[asyncio]>=2.0.45",
+    "uvicorn>=0.40.0",
+    "spacy>=3.8.11",
+    "alembic>=1.17.2",
+]
 
 [dependency-groups]
 dev = [
-    "huggingface-hub>=1.0.1",
+    "huggingface-hub>=1.2.3",
     "ipykernel>=7.1.0",
     "ipywidgets>=8.1.8",
-    "mypy>=1.18.2",
-    "ruff>=0.14.3",
-    "kaggle>=1.7.4.5",
-    "matplotlib>=3.10.7",
+    "mypy>=1.19.1",
+    "ruff>=0.14.10",
+    "kaggle>=1.8.3",
+    "matplotlib>=3.10.8",
     "nbformat>=5.10.4",
-    "plotly>=6.3.1",
-    "seaborn>=0.13.2",
-    "wordcloud>=1.9.4",
-    "pytest>=7.4.0",
-    "httpx>=0.25.0",
-    "fastapi>=0.104.1",
-    "uvicorn>=0.40.0",
-    "sqlalchemy>=2.0.23",
-    "alembic>=1.12.1",
-    "python-jose[cryptography]>=3.3.0",
-    "passlib[bcrypt]>=1.7.4",
-    "python-multipart>=0.0.6",
-    "pydantic>=2.5.0",
-    "pydantic-settings>=2.1.0",
-    "spacy>=3.8.11",
-    "scikit-learn>=1.7.2",
-    "pillow>=10.1.0",
-    "numpy>=2.3.4",
+    "numpy>=2.4.0",
     "pandas>=2.3.3",
-    "python-dateutil>=2.8.2",
-    "python-dotenv>=1.0.0",
+    "scikit-learn>=1.8.0",
+    "plotly>=6.5.0",
+    "seaborn>=0.13.2",
+    "wordcloud>=1.9.5",
 ]
 
-[tool.ruff]
-target-version = "py313"
-line-length = 88
-select = ["E", "W", "F", "I", "B"]
-ignore = ["E501", "B008"]
 
-[tool.ruff.lint]
-# Дополнительные настройки
-per-file-ignores = {}
+[tool.ruff]
+line-length = 120
+exclude = [
+  ".venv",
+  "notebooks",
+  "__pycache__",
+  "app_temik"
+]
+
+[tool.mypy]
+exclude = [
+  ".venv",
+  "notebooks",
+  "__pycache__",
+  "app_temik"
+]

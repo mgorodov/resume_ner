@@ -1,54 +1,34 @@
-import time
-from typing import Dict, Any, Optional
-from app.ml.model import ResumeNERModel
+from typing import Any
+
+from pathlib import Path
+
+import spacy
+from app.config.settings import settings
+from app.ml.schema import NamedEntity
+
+from loguru import logger
 
 
 class NERService:
-    def __init__(self):
-        self.model = ResumeNERModel()
-        
-        if not self.model.is_ready():
-            print("Модель не найдена, начинаем обучение...")
-            self.model.train_model(n_iter=20)
-    
-    def process_text(self, text: str) -> Dict[str, Any]:
-        start_time = time.time()
-        
-        try:
-            entities = self.model.predict(text)
-            
-            return {
-                "success": True,
-                "entities": entities,
-                "processing_time": time.time() - start_time,
-                "text_length": len(text),
-                "entity_count": len(entities)
-            }
-            
-        except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-                "processing_time": time.time() - start_time
-            }
-    
-    def process_image(self, image_bytes: bytes, description: str = None) -> Dict[str, Any]:
-        start_time = time.time()
-        
-        try:
-            # TODO: Реализовать обработку изображения
-            print("Image processing not implemented yet")
-            return {
-                "success": True,
-                "message": "Image processing not implemented yet",
-                "description": description,
-                "processing_time": time.time() - start_time,
-                "image_size": len(image_bytes)
-            }
-            
-        except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-                "processing_time": time.time() - start_time
-            }
+    def __init__(self, model_dir: Path = settings.ml.model_dir):
+        self._model_dir = model_dir
+        logger.debug(f"Loading model from {model_dir}")
+        self._nlp = spacy.load(self._model_dir)
+
+    def infer(self, text: str) -> list[NamedEntity]:
+        doc = self._nlp(text)
+        return [
+            NamedEntity(
+                text=ent.text,
+                label=ent.label_,
+                start=ent.start_char,
+                end=ent.end_char,
+            )
+            for ent in doc.ents
+        ]
+
+    def get_model_debug_info(self) -> dict[str, Any]:
+        return {
+            "pipeline": self._nlp.pipe_names,
+            "labels": list(self._nlp.get_pipe("ner").labels),
+        }

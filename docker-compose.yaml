@@ -1,0 +1,10 @@
+services:
+  pg:
+    image: postgres
+    environment:
+      POSTGRES_DB: resume_ner
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data
+    ports:
+      - "5432:5432"
