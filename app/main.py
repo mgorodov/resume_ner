@@ -14,17 +14,14 @@ from app.ml.ner_service import NERService
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager"""
-    # Startup
     print("Запуск Resume NER Service...")
     
     try:
-        # Создание таблиц если их нет
         Base.metadata.create_all(bind=engine)
         print("База данных готова")
     except Exception as e:
         print(f"Ошибка базы данных: {e}")
     
-    # Инициализация NER сервиса (модель загрузится или обучится автоматически)
     try:
         print("Инициализация NER сервиса...")
         app.state.ner_service = NERService()
@@ -35,7 +32,6 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    # Shutdown
     print("Остановка сервиса...")
 
 
@@ -46,7 +42,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -55,7 +50,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Middleware для измерения времени выполнения запросов
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start_time = time.time()
@@ -64,13 +58,11 @@ async def add_process_time_header(request: Request, call_next):
     response.headers["X-Process-Time"] = str(process_time)
     return response
 
-# Подключение роутеров
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/")
 async def root():
-    """Корневой эндпоинт"""
     return {
         "message": "Добро пожаловать в Resume NER Service",
         "version": settings.VERSION,
@@ -81,7 +73,6 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Проверка здоровья сервиса"""
     status = {
         "status": "healthy",
         "service": "Resume NER Service",
@@ -89,7 +80,6 @@ async def health_check():
         "database": "connected" if os.path.exists("resume_ner.db") else "not_connected"
     }
     
-    # Проверка NER сервиса
     try:
         from app.ml.ner_service import NERService
         status["ner_service"] = "initialized"
@@ -101,7 +91,6 @@ async def health_check():
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    """Глобальный обработчик исключений"""
     import traceback
     print(f"Ошибка: {exc}")
     print(traceback.format_exc())

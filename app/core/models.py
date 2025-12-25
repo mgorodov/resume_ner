@@ -14,7 +14,7 @@ class RequestHistory(Base):
     input_size = Column(Integer)
     input_type = Column(String)
     status = Column(String, nullable=False)
-    response_data = Column(JSON, nullable=True)  # SQLite поддерживает JSON с SQLAlchemy 1.3+
+    response_data = Column(JSON, nullable=True)
     user_agent = Column(String)
     ip_address = Column(String)
 

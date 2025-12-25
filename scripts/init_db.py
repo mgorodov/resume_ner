@@ -14,14 +14,12 @@ from app.database.session import SessionLocal
 
 
 def init_database():
-    """Создание таблиц в базе данных"""
     print("Создание таблиц в базе данных...")
     Base.metadata.create_all(bind=engine)
     print("Таблицы созданы успешно!")
 
 
 def create_admin_user():
-    """Создание пользователя администратора"""
     db = SessionLocal()
     try:
         from app.core.config import settings

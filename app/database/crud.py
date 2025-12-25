@@ -18,7 +18,6 @@ def create_request_history(
     user_agent: Optional[str] = None,
     ip_address: Optional[str] = None
 ):
-    # Для SQLite конвертируем dict в JSON строку
     response_data_json = json.dumps(response_data) if response_data else None
     
     db_history = models.RequestHistory(
@@ -28,7 +27,7 @@ def create_request_history(
         input_size=input_size,
         input_type=input_type,
         status=status,
-        response_data=response_data_json,  # Используем JSON строку
+        response_data=response_data_json,
         user_agent=user_agent,
         ip_address=ip_address
     )
@@ -41,7 +40,6 @@ def create_request_history(
 def get_all_history(db: Session, skip: int = 0, limit: int = 100):
     results = db.query(models.RequestHistory).order_by(models.RequestHistory.timestamp.desc()).offset(skip).limit(limit).all()
     
-    # Конвертируем JSON строки обратно в dict
     for result in results:
         if result.response_data and isinstance(result.response_data, str):
             try:
@@ -59,12 +57,9 @@ def delete_all_history(db: Session):
 
 def get_history_stats(db: Session, days: int = 7):
     """Get statistics for the last N days"""
-    # Для SQLite используем другой синтаксис для даты
     if db.bind.dialect.name == 'sqlite':
         since_date = datetime.datetime.now() - datetime.timedelta(days=days)
         since_timestamp = since_date.timestamp()
-        
-        # Используем текстовый запрос для SQLite
         stats = db.execute(text("""
             SELECT 
                 AVG(processing_time) as avg_time,
@@ -76,11 +71,9 @@ def get_history_stats(db: Session, days: int = 7):
         """), {'since_timestamp': since_timestamp}).first()
         
         if stats:
-            # Для перцентилей в SQLite нужен более сложный запрос
-            # Здесь возвращаем только средние значения
             return type('Stats', (), {
                 'avg_time': stats.avg_time,
-                'p50_time': None,  # Не поддерживается в простой версии
+                'p50_time': None,
                 'p95_time': None,
                 'p99_time': None,
                 'avg_input_size': stats.avg_input_size,
@@ -88,7 +81,6 @@ def get_history_stats(db: Session, days: int = 7):
             })()
         return None
     else:
-        # PostgreSQL версия
         since_date = datetime.datetime.now() - datetime.timedelta(days=days)
         
         stats = db.query(

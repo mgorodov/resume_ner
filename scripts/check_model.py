@@ -17,8 +17,6 @@ def main():
     
     if model.is_ready():
         print("Модель загружена и готова к использованию")
-        
-        # Тестовый запрос
         test_text = "John Smith worked at Google from 2018 to 2023 as a Software Engineer."
         entities = model.predict(test_text)
         
@@ -30,9 +28,8 @@ def main():
     else:
         print("Модель не загружена")
         
-        # Пытаемся обучить
         print("Попытка обучения...")
-        if model.train_model(n_iter=3):
+        if model.train_model(n_iter=20):
             print("Модель обучена и сохранена")
         else:
             print("Не удалось обучить модель")

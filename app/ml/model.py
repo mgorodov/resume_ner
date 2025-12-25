@@ -1,6 +1,3 @@
-"""
-Модель для NER из резюме - основана на оригинальном коде
-"""
 from pathlib import Path
 import json
 import re
@@ -17,12 +14,10 @@ class ResumeNERModel:
         self.model_dir = Path(model_dir)
         self.nlp = None
         self.model_path = self.model_dir / "resume_ner_model"
-        
-        # Пытаемся загрузить модель
+
         self.load_model()
     
     def load_model(self) -> bool:
-        """Загрузка модели из файла"""
         if self.model_path.exists():
             try:
                 print(f"Загрузка модели из {self.model_path}")
@@ -37,7 +32,6 @@ class ResumeNERModel:
             return False
     
     def save_model(self) -> bool:
-        """Сохранение модели"""
         if not self.nlp:
             print("Модель не обучена, нечего сохранять")
             return False
@@ -52,7 +46,6 @@ class ResumeNERModel:
             return False
     
     def _load_dataset(self):
-        """Загрузка датасета (ваш оригинальный код)"""
         DATASET_DIR = Path.cwd() / "datasets" / "dataturks"
         DATASET_PATH = DATASET_DIR / "Entity Recognition in Resumes.json"
         
@@ -73,7 +66,6 @@ class ResumeNERModel:
         return DATASET_PATH
     
     def _convert_dataturks_to_spacy(self, dataturks_JSON_FilePath):
-        """Конвертация данных (ваш оригинальный код)"""
         nlp = spacy.blank("en")
         training_data = []
         
@@ -134,7 +126,6 @@ class ResumeNERModel:
         return training_data
     
     def _trim_entity_spans(self, data: list) -> list:
-        """Очистка сущностей от пробелов (ваш оригинальный код)"""
         invalid_span_tokens = re.compile(r'\s')
         cleaned_data = []
         for text, annotations in data:
@@ -154,7 +145,6 @@ class ResumeNERModel:
         return cleaned_data
     
     def _train_test_split(self, data, test_size, random_state):
-        """Разделение на train/test (ваш оригинальный код)"""
         random.Random(random_state).shuffle(data)
         test_idx = len(data) - math.floor(test_size * len(data))
         train_set = data[0: test_idx]
@@ -162,7 +152,6 @@ class ResumeNERModel:
         return train_set, test_set
     
     def _filter_overlapping_entities(self, data):
-        """Удаление перекрывающихся сущностей (ваш оригинальный код)"""
         cleaned_data = []
         
         for text, annotations in data:
@@ -190,7 +179,6 @@ class ResumeNERModel:
         return cleaned_data
     
     def train_model(self, n_iter: int = 20, test_size: float = 0.1) -> bool:
-        """Обучение модели (адаптированный ваш код)"""
         
         if self.nlp:
             print("Модель уже загружена, обучение не требуется")
@@ -199,24 +187,20 @@ class ResumeNERModel:
         print("Обучение новой модели...")
         
         try:
-            # Загрузка и подготовка данных (ваш оригинальный код)
             dataset_path = self._load_dataset()
             data = self._convert_dataturks_to_spacy(dataset_path)
             data = self._trim_entity_spans(data)
             train_data, test_data = self._train_test_split(data, test_size=test_size, random_state=42)
             train_data = self._filter_overlapping_entities(train_data)
             
-            # Создание и обучение модели (ваш оригинальный код)
             self.nlp = spacy.blank('en')
             if 'ner' not in self.nlp.pipe_names:
                 ner = self.nlp.add_pipe('ner', last=True)
             
-            # Добавление лейблов
             for _, annotations in train_data:
                 for ent in annotations.get("entities"):
                     ner.add_label(ent[2])
             
-            # Обучение
             other_pipes = [pipe for pipe in self.nlp.pipe_names if pipe != 'ner']
             with self.nlp.disable_pipes(*other_pipes):
                 optimizer = self.nlp.initialize()
@@ -238,11 +222,9 @@ class ResumeNERModel:
                         )
                     print(f"Losses: {losses}")
             
-            # Оценка модели (опционально)
             accuracy = self._evaluate_model(test_data)
             print(f"Model accuracy: {accuracy:.4f}")
             
-            # Сохранение модели
             if self.save_model():
                 print("Модель обучена и сохранена")
                 return True
@@ -255,7 +237,6 @@ class ResumeNERModel:
             return False
     
     def _evaluate_model(self, test_data):
-        """Оценка модели (ваш оригинальный код)"""
         from sklearn.metrics import accuracy_score
         
         if not self.nlp:
@@ -303,13 +284,10 @@ class ResumeNERModel:
         return accuracy
     
     def predict(self, text: str) -> List[Dict[str, Any]]:
-        """Предсказание сущностей"""
         if not self.nlp:
-            # Пытаемся загрузить модель
             if not self.load_model():
-                # Если не удалось загрузить, обучаем
                 print("Модель не найдена, обучаем новую...")
-                if self.train_model(n_iter=5):  # Быстрое обучение
+                if self.train_model(n_iter=20):
                     print("Модель обучена, продолжаем предсказание")
                 else:
                     raise ValueError("Не удалось обучить модель")

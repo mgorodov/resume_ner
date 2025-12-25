@@ -6,13 +6,12 @@ from app.core.config import settings
 
 
 def get_engine():
-    """Create engine with SQLite-specific settings"""
     if settings.DATABASE_URL.startswith("sqlite"):
         return create_engine(
             settings.DATABASE_URL,
             connect_args={"check_same_thread": False},
             poolclass=StaticPool,
-            echo=False  # Set to True for SQL debugging
+            echo=False
         )
     else:
         return create_engine(settings.DATABASE_URL)
@@ -24,7 +23,6 @@ Base = declarative_base()
 
 
 def get_db():
-    """Dependency for getting database session"""
     db = SessionLocal()
     try:
         yield db

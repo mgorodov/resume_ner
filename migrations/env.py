@@ -5,7 +5,6 @@ from alembic import context
 import sys
 import os
 
-# Add the project root to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.core.config import settings
@@ -13,7 +12,6 @@ from app.core.models import Base
 
 config = context.config
 
-# Set the SQLAlchemy URL from settings
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 if config.config_file_name is not None:
@@ -38,11 +36,9 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
-    # Handle SQLite connection for migrations
     connectable = config.attributes.get("connection", None)
     
     if connectable is None:
-        # Only create Engine if we don't have a Connection from the outside
         if settings.DATABASE_URL.startswith("sqlite"):
             connectable = engine_from_config(
                 config.get_section(config.config_ini_section, {}),

@@ -15,7 +15,6 @@ from app.api.dependencies import get_current_user, get_current_admin, verify_del
 router = APIRouter()
 
 
-# Authentication endpoints
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
     user_data: UserLogin,
@@ -56,7 +55,6 @@ async def register_user(
     return {"message": "User created successfully", "username": user.username}
 
 
-# Main forward endpoint
 @router.post("/forward", response_model=ForwardResponse)
 async def forward_endpoint(
     request: Request,
@@ -70,7 +68,6 @@ async def forward_endpoint(
         client_host = request.client.host if request.client else "unknown"
         user_agent = request.headers.get("user-agent", "unknown")
         
-        # Get NER service from app state
         ner_service = request.app.state.ner_service
         if not ner_service:
             raise HTTPException(
@@ -78,9 +75,7 @@ async def forward_endpoint(
                 detail="NER service not initialized"
             )
         
-        # Check input type
         if image:
-            # Process image
             if not image.content_type.startswith("image/"):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -94,7 +89,6 @@ async def forward_endpoint(
             input_type = "image"
             
         elif text:
-            # Process text
             result = ner_service.process_text(text)
             
             input_size = len(text)
@@ -108,7 +102,6 @@ async def forward_endpoint(
         
         processing_time = time.time() - start_time
         
-        # Save to history
         crud.create_request_history(
             db=db,
             endpoint="/forward",
@@ -122,14 +115,12 @@ async def forward_endpoint(
             ip_address=client_host
         )
         
-        # Check if model failed
         if not result["success"]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Модель не смогла обработать данные"
             )
         
-        # Prepare response
         response_data = {
             "success": True,
             "processing_time": processing_time
@@ -147,7 +138,6 @@ async def forward_endpoint(
     except Exception as e:
         processing_time = time.time() - start_time
         
-        # Save error to history
         try:
             crud.create_request_history(
                 db=db,
@@ -162,7 +152,7 @@ async def forward_endpoint(
                 ip_address=request.client.host if request.client else "unknown"
             )
         except:
-            pass  # Если не удалось сохранить в историю, продолжаем
+            pass
         
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -170,7 +160,6 @@ async def forward_endpoint(
         )
 
 
-# Training endpoint
 @router.post("/train", dependencies=[Depends(get_current_admin)])
 async def train_model(
     n_iter: int = Form(10),
@@ -183,26 +172,21 @@ async def train_model(
     try:
         from app.ml.model import ResumeNERModel
         
-        # Train model
-        print("🎯 Обучение модели NER...")
+        print("Обучение модели NER...")
         model = ResumeNERModel()
         nlp = model.train_model(n_iter=n_iter, test_size=test_size)
         
-        # Save model
         model_path = Path("models/resume_ner_model")
         model_path.parent.mkdir(exist_ok=True)
         model.save_model(str(model_path))
         
-        # Update app state
         from app.ml.ner_service import NERService
         request.app.state.ner_service = NERService(str(model_path))
         
-        # Evaluate
         accuracy = model.evaluate()
         
         processing_time = time.time() - start_time
         
-        # Log to history
         if request:
             crud.create_request_history(
                 db=db,
@@ -243,7 +227,6 @@ async def train_model(
         )
 
 
-# History endpoints
 @router.get("/history", response_model=List[HistoryResponse])
 async def get_history(
     skip: int = 0,
@@ -277,7 +260,6 @@ async def delete_history(
         )
 
 
-# Stats endpoint
 @router.get("/stats", response_model=StatsResponse)
 async def get_stats(
     days: int = 7,

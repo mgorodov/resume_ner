@@ -1,1 +1,1 @@
-# Schemas module
+# Schemas
