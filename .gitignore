@@ -12,3 +12,5 @@ __pycache__
 .mypy_cache
 
 datasets
+certs
+*.sqlite3
