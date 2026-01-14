@@ -100,7 +100,10 @@ Java, HTML, C++, Linux, SQL, AWS — наиболее востребованы
 - 10 эпох обучения
 
 **РЕЗУЛЬТАТЫ**  
-**Accuracy: 96.37%**
+- **Token-level Accuracy: 96.35%**
+- **Precision: 95.41%**
+- **Recall: 96.35%**
+- **F1-Score: 95.85%**
 
 **ОСОБЕННОСТИ**
 - Train/Test split: 90% / 10% (198 / 22 резюме)
@@ -111,12 +114,12 @@ Java, HTML, C++, Linux, SQL, AWS — наиболее востребованы
 
 ## Слайд 7: Улучшения модели
 
-| ЭКСПЕРИМЕНТ | ПОДХОД | ACCURACY |
-|-------------|--------|----------|
-| Baseline | SpaCy blank + 10 epochs | 96.37% |
-| (планируется) Pretrained | SpaCy en_core_web_sm | TBD |
-| (планируется) BERT | Fine-tuned BERT | TBD |
-| (планируется) Hyperparams | Epochs, dropout, optimizer | TBD |
+| ЭКСПЕРИМЕНТ | ПОДХОД | TOKEN ACC | ENTITY F1 |
+|-------------|--------|-----------|-----------|
+| Baseline | SpaCy blank + 10 epochs | 96.35% | 61.63% |
+| (планируется) Pretrained | SpaCy en_core_web_sm | TBD | TBD |
+| (планируется) BERT | Fine-tuned BERT | TBD | TBD |
+| (планируется) Hyperparams | Epochs, dropout, optimizer | TBD | TBD |
 
 **ПРОВЕДЕННАЯ РАБОТА**
 - ✓ Очистка перекрывающихся сущностей
