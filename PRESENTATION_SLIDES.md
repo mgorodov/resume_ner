@@ -84,9 +84,11 @@ Java, HTML, C++, Linux, SQL, AWS — наиболее востребованы
 - Учитывает схему BILOU (Begin, Inside, Last, Outside, Unit)
 - Подходит для задач sequence labeling
 
-**ДОПОЛНИТЕЛЬНЫЕ МЕТРИКИ (планируются)**
-- Precision, Recall, F1 по классам сущностей
-- Entity-level метрики (полное совпадение границ)
+**ДОПОЛНИТЕЛЬНЫЕ МЕТРИКИ**
+- Token-level: Precision, Recall, F1
+- Entity-level: Precision, Recall, F1
+  - *Accuracy не применяется на entity-level (нет TN)*
+  - F1-Score = главная метрика качества сущностей
 
 ---
 
