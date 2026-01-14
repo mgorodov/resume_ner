@@ -10,3 +10,6 @@ def get_current_dt() -> dt.datetime:
 
 class CreatedAtMixin:
     created_at: Mapped[dt.datetime] = mapped_column(default=get_current_dt, server_default=func.now())
+
+class IntIdPkMixin:
+    id: Mapped[int] = mapped_column(primary_key=True)

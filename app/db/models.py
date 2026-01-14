@@ -3,8 +3,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
 import datetime as dt
-from app.db.mixins.created_at import CreatedAtMixin
-from app.db.mixins.int_id_pk import IntIdPkMixin
+from app.db.mixins import CreatedAtMixin, IntIdPkMixin
 
 from sqlalchemy.orm import DeclarativeBase
 

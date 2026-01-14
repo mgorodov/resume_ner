@@ -20,7 +20,11 @@ def summarize_distribution(arr: np.ndarray) -> DistributionSummary:
 
 @router.get("/")
 async def get_stats(db_session: DBSessionDep, user_info: UserRoleDep, only_mine: bool = True) -> GetStatsResponse:
+    if not only_mine:
+        user_info.verify_role("admin")
+
     sql = sa.select(ForwardHistoryOrm.duration_us, sa.func.length(ForwardHistoryOrm.text))
+    
     if only_mine:
         sql = sql.where(ForwardHistoryOrm.actor == user_info.actor)
 
