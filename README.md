@@ -1,6 +1,75 @@
 # Годовой проект ИИ25 (1 курс магистратуры mlds/ИИ)
-Участники: Городов Михаил, Голубев Александр, Макаренков Артём\
+Участники: Городов Михаил, Голубев Александр, Макаренков Артём
 Куратор: Кирилл Малюшитский
+
+# Как развернуть локально?
+
+## Управляем зависимостями с помощью uv
+Скачать uv: https://docs.astral.sh/uv/getting-started/installation/
+
+Можно заранее (до вызова `uv run`) явно установить все зависимости:
+```
+uv sync
+```
+Или нужные только для fastapi приложения:
+```
+uv sync --no-dev
+```
+
+## Конфигурация и jwt ключи
+Конфиг можно переопределить с помощью файла `.env` в корне проекта, пример есть в `.env.template`\
+По умолчанию ключи для jwt ожидаются в папочке `certs/` и сгенерировать новые находясь в корне проекта можно например так:
+
+```
+# Create and go into certs/ folder
+mkdir certs
+cd certs
+
+# Generate an RSA private key, of size 2048
+openssl genrsa -out jwt-private.pem 2048
+
+# Extract the public key from the key pair, which can be used in a certificate
+openssl rsa -in jwt-private.pem -outform PEM -pubout -out jwt-public.pem
+
+# Go back to the root of project
+cd ..
+```
+
+## Создать sqlite базу и накатить все миграции
+
+```
+uv run --no-dev alembic upgrade head
+```
+
+## Создать тестовых пользователей
+
+|username|password|
+|-|-|
+|user|user|
+|admin|admin|
+|only_admin|only_admin|
+
+```
+uv run --no-dev python3 -m tools.create_mock_users
+```
+
+## Запуск веб-сервера
+
+### Со всеми зависимостями:
+```
+make run
+```
+или
+```
+uv run python3 -m app.cmd
+```
+
+### Без dev зависимостей:
+```
+uv run --no-dev python3 -m app.cmd
+```
+
+TODO: запуск в докере, мб на постгрес переехать
 
 # Тема: Приложения NER для анализа резюме
 ## Базовый минимум:

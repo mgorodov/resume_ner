@@ -1,0 +1,51 @@
+# Hydra config for Resume NER training pipeline (Checkpoint 7 bonus)
+# Run: python train_cli.py
+# Override: python train_cli.py training.n_epochs=50 mlflow.experiment_name=my_exp
+
+defaults:
+  - _self_
+
+# ---------------------------------------------------------------------------
+# Data
+# ---------------------------------------------------------------------------
+data:
+  dataset_path: datasets/dataturks/Entity Recognition in Resumes.json
+  test_size: 0.1
+  dev_size: 0.1
+  random_state: 42
+  use_augmentation: true
+
+# ---------------------------------------------------------------------------
+# Model
+# ---------------------------------------------------------------------------
+model:
+  # one of: "baseline", "pretrained", "hybrid"
+  type: pretrained
+  # Base SpaCy model for pretrained/hybrid variants
+  base_spacy_model: en_core_web_lg
+
+# ---------------------------------------------------------------------------
+# Training
+# ---------------------------------------------------------------------------
+training:
+  n_epochs: 30
+  dropout: 0.3
+  patience: 5
+  batch_size_start: 4.0
+  batch_size_stop: 32.0
+  batch_size_compound: 1.001
+
+# ---------------------------------------------------------------------------
+# MLflow
+# ---------------------------------------------------------------------------
+mlflow:
+  tracking_uri: http://localhost:5001
+  s3_endpoint_url: http://localhost:9000
+  aws_access_key_id: minioadmin
+  aws_secret_access_key: minioadmin
+  experiment_name: resume-ner
+  run_name: B+aug_pretrained
+  # Tag value for the production model. After successful run, this run will be
+  # registered in MLflow Model Registry with a stage equivalent of PRD.
+  prod_tag: PRD
+  register_model_name: resume_ner_prod

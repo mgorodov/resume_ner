@@ -12,3 +12,13 @@ __pycache__
 .mypy_cache
 
 datasets
+certs
+*.sqlite3
+venv/
+
+# MLflow / Hydra outputs
+mlruns/
+outputs/
+multirun/
+demo_output.json
+*.docx
